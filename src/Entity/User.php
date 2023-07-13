@@ -3,12 +3,9 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-#[ORM\Table(name: '`user`')]
 class User
 {
     #[ORM\Id]
@@ -20,18 +17,13 @@ class User
     private ?string $firstName = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $LastName = null;
+    private ?string $lastName = null;
 
     #[ORM\Column(length: 255)]
     private ?string $email = null;
 
-    #[ORM\OneToMany(mappedBy: 'user_id', targetEntity: Client::class, orphanRemoval: true)]
-    private Collection $client;
-
-    public function __construct()
-    {
-        $this->client = new ArrayCollection();
-    }
+    #[ORM\ManyToOne(inversedBy: 'users')]
+    private ?Client $client = null;
 
     public function getId(): ?int
     {
@@ -52,12 +44,12 @@ class User
 
     public function getLastName(): ?string
     {
-        return $this->LastName;
+        return $this->lastName;
     }
 
-    public function setLastName(string $LastName): static
+    public function setLastName(string $lastName): static
     {
-        $this->LastName = $LastName;
+        $this->lastName = $lastName;
 
         return $this;
     }
@@ -74,32 +66,14 @@ class User
         return $this;
     }
 
-    /**
-     * @return Collection<int, Client>
-     */
-    public function getClient(): Collection
+    public function getClient(): ?Client
     {
         return $this->client;
     }
 
-    public function addClient(Client $client): static
+    public function setClient(?Client $client): static
     {
-        if (!$this->client->contains($client)) {
-            $this->client->add($client);
-            $client->setUserId($this);
-        }
-
-        return $this;
-    }
-
-    public function removeClient(Client $client): static
-    {
-        if ($this->client->removeElement($client)) {
-            // set the owning side to null (unless already changed)
-            if ($client->getUserId() === $this) {
-                $client->setUserId(null);
-            }
-        }
+        $this->client = $client;
 
         return $this;
     }
