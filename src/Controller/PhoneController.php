@@ -13,6 +13,12 @@ use Symfony\Component\Serializer\SerializerInterface;
 class PhoneController extends AbstractController
 {
     #[Route('/api/phones', name: 'phones', methods: ['GET'])]
+/**
+ * route pour récupérer tous les téléphones
+ * @param \App\Repository\PhoneRepository $phoneRepository
+ * @param \Symfony\Component\Serializer\SerializerInterface $serializer
+ * @return \Symfony\Component\HttpFoundation\JsonResponse
+ */
 public function getAllPhones(PhoneRepository $phoneRepository, SerializerInterface $serializer): JsonResponse
     {
     $phones = $phoneRepository->findAll();
@@ -23,6 +29,12 @@ public function getAllPhones(PhoneRepository $phoneRepository, SerializerInterfa
 
 
 #[Route('/api/phones/{id}', name: 'detailPhone', methods: ['GET'])]
+/**
+ * Route pour récupérer un téléphone par son id
+ * @param \App\Entity\Phone $phone
+ * @param \Symfony\Component\Serializer\SerializerInterface $serializer
+ * @return \Symfony\Component\HttpFoundation\JsonResponse
+ */
 function getDetailPhone(Phone $phone, SerializerInterface $serializer): JsonResponse
     {
         $jsonPhonesList = $serializer->serialize($phone, 'json');
