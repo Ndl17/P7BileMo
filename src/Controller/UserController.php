@@ -13,9 +13,12 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class UserController extends AbstractController
 {
+
+
     #[Route('/api/users', name: 'users', methods: ['GET'])]
 /**
  * Route pour récupérer tous les utilisateurs
@@ -25,14 +28,15 @@ class UserController extends AbstractController
  */
 public function getAllUsers(UserRepository $userRepository, SerializerInterface $serializer): JsonResponse
     {
+
     $users = $userRepository->findAll();
     $jsonUserList = $serializer->serialize($users, 'json', ['groups' => 'getUsers']);
     return new JsonResponse($jsonUserList, Response::HTTP_OK, [], true);
 }
 
 
-#[Route('/api/users/{id}', name: 'detailUser', methods: ['GET'])]
 
+#[Route('/api/users/{id}', name: 'detailUser', methods: ['GET'])]
 /**
  * Route pour récupérer un utilisateur par son id
  * @param \App\Entity\User $user
@@ -41,10 +45,12 @@ public function getAllUsers(UserRepository $userRepository, SerializerInterface 
  */
 function getDetailUser(User $user, SerializerInterface $serializer): JsonResponse
     {
-        $jsonUserList = $serializer->serialize($user, 'json', ['groups' => 'getUsers']);
-        return new JsonResponse($jsonUserList, Response::HTTP_OK, [], true);
-    
+
+    $jsonUserList = $serializer->serialize($user, 'json', ['groups' => 'getUsers']);
+    return new JsonResponse($jsonUserList, Response::HTTP_OK, [], true);
 }
+
+
 
 #[Route('/api/users/{id}', name: 'deleteUser', methods: ['DELETE'])]
 /**
@@ -55,11 +61,13 @@ function getDetailUser(User $user, SerializerInterface $serializer): JsonRespons
  */
 function deleteUser(User $user, EntityManagerInterface $entityManager): JsonResponse
     {
-        $entityManager->remove($user);
-        $entityManager->flush();
-        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
 
+    $entityManager->remove($user);
+    $entityManager->flush();
+    return new JsonResponse(null, Response::HTTP_NO_CONTENT);
 }
+
+
 
 #[Route('/api/users', name: 'addUser', methods: ['POST'])]
 /**
@@ -68,20 +76,29 @@ function deleteUser(User $user, EntityManagerInterface $entityManager): JsonResp
  * @param \Doctrine\ORM\EntityManagerInterface $entityManager
  * @return \Symfony\Component\HttpFoundation\JsonResponse
  */
-function addUser(Request $request,ClientRepository $clientRepository ,SerializerInterface $serializer, EntityManagerInterface $entityManager,UrlGeneratorInterface $urlGenerator): JsonResponse
+function addUser(Request $request, ClientRepository $clientRepository, SerializerInterface $serializer, EntityManagerInterface $entityManager, UrlGeneratorInterface $urlGenerator,ValidatorInterface $validator): JsonResponse
     {
-        $user = $serializer->deserialize($request->getContent(), User::class, 'json');
+    $user = $serializer->deserialize($request->getContent(), User::class, 'json');
+
+    $content = $request->toArray();
+    $idClient = $content['client_id'] ?? -1;
+    $user->setClient($clientRepository->find($idClient));
+
+    $errors = $validator->validate($user);
+
+    if ($errors->count() > 0) {
+        return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+    }
 
 
-        $content = $request->toArray();
-        $idClient = $content['client_id'] ?? -1;
-        $user->setClient($clientRepository->find($idClient));
-        $entityManager->persist($user);
-        $entityManager->flush();
-        $location = $urlGenerator->generate('detailUser', ['id' => $user->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+    $entityManager->persist($user);
+    $entityManager->flush();
+    $location = $urlGenerator->generate('detailUser', ['id' => $user->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
 
-        $jsonUser = $serializer->serialize($user, 'json', ['groups' => 'getUsers']);
-        return new JsonResponse($jsonUser,Response::HTTP_CREATED,["location"=>$location],true);
+    $jsonUser = $serializer->serialize($user, 'json', ['groups' => 'getUsers']);
+    return new JsonResponse($jsonUser, Response::HTTP_CREATED, ["location" => $location], true);
 }
+
+
 
 }
