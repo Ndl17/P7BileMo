@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 class User
@@ -11,18 +13,30 @@ class User
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['getUsers'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['getUsers'])]
+    #[Assert\NotBlank(message: 'Le prenom ne peut pas être vide')]
+    #[Assert\Length(min:1, max: 255, maxMessage: 'Le titre ne peut pas dépasser {{ limit }} caractères')]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['getUsers'])]
+    #[Assert\NotBlank(message: 'Le nom ne peut pas être vide')]
+    #[Assert\Length(min:1, max: 255, maxMessage: 'Le titre ne peut pas dépasser {{ limit }} caractères')]
     private ?string $lastName = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['getUsers'])]
+    #[Assert\NotBlank(message: 'L\'email ne peut pas être vide')]
+    #[Assert\Length(min:1, max: 255, maxMessage: 'Le titre ne peut pas dépasser {{ limit }} caractères')]
+
     private ?string $email = null;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
+    #[Groups(['getUsers'])]
     private ?Client $client = null;
 
     public function getId(): ?int
