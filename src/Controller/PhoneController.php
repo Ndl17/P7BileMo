@@ -6,6 +6,7 @@ use App\Entity\Phone;
 use App\Repository\PhoneRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -19,14 +20,15 @@ class PhoneController extends AbstractController
  * @param \Symfony\Component\Serializer\SerializerInterface $serializer
  * @return \Symfony\Component\HttpFoundation\JsonResponse
  */
-public function getAllPhones(PhoneRepository $phoneRepository, SerializerInterface $serializer): JsonResponse
+public function getAllPhones(PhoneRepository $phoneRepository, SerializerInterface $serializer, Request $request): JsonResponse
     {
-    $phones = $phoneRepository->findAll();
+    $page = $request->query->get('page', 1);
+    $limit = $request->query->get('limit', 5);
+    $phones = $phoneRepository->findAllPhonePagination($page, $limit);
     $jsonPhonesList = $serializer->serialize($phones, 'json');
     return new JsonResponse($jsonPhonesList, Response::HTTP_OK, [], true);
 
 }
-
 
 #[Route('/api/phones/{id}', name: 'detailPhone', methods: ['GET'])]
 /**
@@ -37,8 +39,8 @@ public function getAllPhones(PhoneRepository $phoneRepository, SerializerInterfa
  */
 function getDetailPhone(Phone $phone, SerializerInterface $serializer): JsonResponse
     {
-        $jsonPhonesList = $serializer->serialize($phone, 'json');
-        return new JsonResponse($jsonPhonesList, Response::HTTP_OK, [], true);
-    
+    $jsonPhonesList = $serializer->serialize($phone, 'json');
+    return new JsonResponse($jsonPhonesList, Response::HTTP_OK, [], true);
+
 }
 }

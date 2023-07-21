@@ -18,7 +18,6 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class UserController extends AbstractController
 {
 
-
     #[Route('/api/users', name: 'users', methods: ['GET'])]
 /**
  * Route pour récupérer tous les utilisateurs
@@ -26,15 +25,15 @@ class UserController extends AbstractController
  * @param \Symfony\Component\Serializer\SerializerInterface $serializer
  * @return \Symfony\Component\HttpFoundation\JsonResponse
  */
-public function getAllUsers(UserRepository $userRepository, SerializerInterface $serializer): JsonResponse
+public function getAllUsers(UserRepository $userRepository, SerializerInterface $serializer, Request $request): JsonResponse
     {
+    $page = $request->query->get('page', 1);
+    $limit = $request->query->get('limit', 5);
 
-    $users = $userRepository->findAll();
+    $users = $userRepository->findAllUserPagination($page, $limit);
     $jsonUserList = $serializer->serialize($users, 'json', ['groups' => 'getUsers']);
     return new JsonResponse($jsonUserList, Response::HTTP_OK, [], true);
 }
-
-
 
 #[Route('/api/users/{id}', name: 'detailUser', methods: ['GET'])]
 /**
@@ -49,8 +48,6 @@ function getDetailUser(User $user, SerializerInterface $serializer): JsonRespons
     $jsonUserList = $serializer->serialize($user, 'json', ['groups' => 'getUsers']);
     return new JsonResponse($jsonUserList, Response::HTTP_OK, [], true);
 }
-
-
 
 #[Route('/api/users/{id}', name: 'deleteUser', methods: ['DELETE'])]
 /**
@@ -67,8 +64,6 @@ function deleteUser(User $user, EntityManagerInterface $entityManager): JsonResp
     return new JsonResponse(null, Response::HTTP_NO_CONTENT);
 }
 
-
-
 #[Route('/api/users', name: 'addUser', methods: ['POST'])]
 /**
  * Route pour ajouter un utilisateur
@@ -76,7 +71,7 @@ function deleteUser(User $user, EntityManagerInterface $entityManager): JsonResp
  * @param \Doctrine\ORM\EntityManagerInterface $entityManager
  * @return \Symfony\Component\HttpFoundation\JsonResponse
  */
-function addUser(Request $request, ClientRepository $clientRepository, SerializerInterface $serializer, EntityManagerInterface $entityManager, UrlGeneratorInterface $urlGenerator,ValidatorInterface $validator): JsonResponse
+function addUser(Request $request, ClientRepository $clientRepository, SerializerInterface $serializer, EntityManagerInterface $entityManager, UrlGeneratorInterface $urlGenerator, ValidatorInterface $validator): JsonResponse
     {
     $user = $serializer->deserialize($request->getContent(), User::class, 'json');
 
@@ -90,7 +85,6 @@ function addUser(Request $request, ClientRepository $clientRepository, Serialize
         return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
     }
 
-
     $entityManager->persist($user);
     $entityManager->flush();
     $location = $urlGenerator->generate('detailUser', ['id' => $user->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
@@ -98,7 +92,5 @@ function addUser(Request $request, ClientRepository $clientRepository, Serialize
     $jsonUser = $serializer->serialize($user, 'json', ['groups' => 'getUsers']);
     return new JsonResponse($jsonUser, Response::HTTP_CREATED, ["location" => $location], true);
 }
-
-
 
 }
