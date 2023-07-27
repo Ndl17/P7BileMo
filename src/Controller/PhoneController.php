@@ -10,6 +10,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Contracts\Cache\ItemInterface;
+use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 class PhoneController extends AbstractController
 {
@@ -20,12 +22,22 @@ class PhoneController extends AbstractController
  * @param \Symfony\Component\Serializer\SerializerInterface $serializer
  * @return \Symfony\Component\HttpFoundation\JsonResponse
  */
-public function getAllPhones(PhoneRepository $phoneRepository, SerializerInterface $serializer, Request $request): JsonResponse
+public function getAllPhones(PhoneRepository $phoneRepository, SerializerInterface $serializer, Request $request,TagAwareCacheInterface $cache): JsonResponse
     {
     $page = $request->query->get('page', 1);
     $limit = $request->query->get('limit', 5);
-    $phones = $phoneRepository->findAllPhonePagination($page, $limit);
-    $jsonPhonesList = $serializer->serialize($phones, 'json');
+
+    $idCache = 'getAllPhones_' . $page . '_' . $limit;
+    $jsonPhonesList = $cache->get($idCache, function (ItemInterface $item) use ($phoneRepository, $page, $limit, $serializer) {
+        echo ('mise en cache');
+        $item->tag('phoneListCache');
+        $phoneList = $phoneRepository->findAllPhonePagination($page, $limit);
+
+         //$item->expiresAfter(10);
+        return $serializer->serialize($phoneList, 'json');
+
+    });
+  //  $jsonPhonesList = $serializer->serialize($phones, 'json');
     return new JsonResponse($jsonPhonesList, Response::HTTP_OK, [], true);
 
 }
