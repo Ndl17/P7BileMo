@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\SerializerInterface;
+use JMS\Serializer\SerializerInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
@@ -33,7 +33,7 @@ public function getAllPhones(PhoneRepository $phoneRepository, SerializerInterfa
         $item->tag('phoneListCache');
         $phoneList = $phoneRepository->findAllPhonePagination($page, $limit);
 
-         //$item->expiresAfter(10);
+         $item->expiresAfter(1);
         return $serializer->serialize($phoneList, 'json');
 
     });

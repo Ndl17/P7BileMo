@@ -6,6 +6,9 @@ use App\Entity\User;
 use App\Repository\ClientRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Hateoas\HateoasBuilder;
+use Hateoas\Representation\CollectionRepresentation;
+use Hateoas\Representation\PaginatedRepresentation;
 use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -14,38 +17,68 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-//use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+
 
 class UserController extends AbstractController
 {
 
     #[Route('/api/users', name: 'users', methods: ['GET'])]
-/**
- * Route pour récupérer tous les utilisateurs
- * @param \App\Repository\UserRepository $userRepository
- * @param \Symfony\Component\Serializer\SerializerInterface $serializer
- * @return \Symfony\Component\HttpFoundation\JsonResponse
- */
-public function getAllUsers(UserRepository $userRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cache): JsonResponse
-    {
-    $page = $request->query->get('page', 1);
-    $limit = $request->query->get('limit', 5);
+    public function getAllUsers(
+        UserRepository $userRepository,
+        SerializerInterface $serializer,
+        Request $request,
+        TagAwareCacheInterface $cache,
+        RouterInterface $router
+    ): JsonResponse {
+        $page = $request->query->get('page', 1);
+        $limit = $request->query->get('limit', 5);
 
-    $idCache = 'getAllUsers_' . $page . '_' . $limit;
-    $jsonUserList = $cache->get($idCache, function (ItemInterface $item) use ($userRepository, $page, $limit, $serializer) {
-        echo ('mise en cache');
-        $item->tag('userListCache');
-        // $item->expiresAfter(10);
-        $context = SerializationContext::create()->setGroups(['getUsers']);
-        $userList = $userRepository->findAllUserPagination($page, $limit);
-        return $serializer->serialize($userList, 'json', $context);
+        $idCache = 'getAllUsers_' . $page . '_' . $limit;
+        $jsonUserList = $cache->get($idCache, function (ItemInterface $item) use ($userRepository, $page, $limit, $serializer, $router) {
+            echo ('mise en cache');
+            $item->tag('userListCache');
+            $item->expiresAfter(10);
+            $context = SerializationContext::create()->setGroups(['getUsers']);
+            $userList = $userRepository->findAllUserPagination($page, $limit);
 
-    });
-    return new JsonResponse($jsonUserList, Response::HTTP_OK, [], true);
-}
+            // Calculate total number of users for pagination
+            $totalUsers = count($userRepository->findAll());
+
+            // Calculate the number of total pages
+            $totalPages = ceil($totalUsers / $limit);
+
+            // Generate HATEOAS pagination links
+            $links = [
+                'self' => $router->generate('users', ['page' => $page, 'limit' => $limit], UrlGeneratorInterface::ABSOLUTE_URL),
+                'first' => $router->generate('users', ['page' => 1, 'limit' => $limit], UrlGeneratorInterface::ABSOLUTE_URL),
+                'last' => $router->generate('users', ['page' => $totalPages, 'limit' => $limit], UrlGeneratorInterface::ABSOLUTE_URL),
+            ];
+
+            if ($page > 1) {
+                $links['prev'] = $router->generate('users', ['page' => $page - 1, 'limit' => $limit], UrlGeneratorInterface::ABSOLUTE_URL);
+            }
+
+            if ($page < $totalPages) {
+                $links['next'] = $router->generate('users', ['page' => $page + 1, 'limit' => $limit], UrlGeneratorInterface::ABSOLUTE_URL);
+            }
+
+            $paginationData = [
+                'items' => $userList,
+                'page' => $page,
+                'pageSize' => $limit,
+                'totalItems' => $totalUsers,
+                'links' => $links,
+            ];
+
+            return $serializer->serialize($paginationData, 'json', $context);
+        });
+
+        return new JsonResponse($jsonUserList, Response::HTTP_OK, [], true);
+    }
 
 #[Route('/api/users/{id}', name: 'detailUser', methods: ['GET'])]
 /**
