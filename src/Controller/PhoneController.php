@@ -60,7 +60,7 @@ public function getAllPhones(
         return $json;
 
     });
-    //  $jsonPhonesList = $serializer->serialize($phones, 'json');
+
     return new JsonResponse($jsonPhonesList, Response::HTTP_OK, [], true);
 
 }
