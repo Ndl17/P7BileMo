@@ -38,7 +38,6 @@ class UserRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
-
     public function findAllUserPagination(int $page, int $limit): array
     {
         $queryBuilder = $this->createQueryBuilder('u');

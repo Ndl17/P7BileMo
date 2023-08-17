@@ -6,13 +6,16 @@ use App\Entity\User;
 use App\Repository\ClientRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Hateoas\Representation\CollectionRepresentation;
+use Hateoas\Representation\PaginatedRepresentation;
+use JMS\Serializer\SerializationContext;
+use JMS\Serializer\SerializerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
@@ -21,26 +24,45 @@ class UserController extends AbstractController
 {
 
     #[Route('/api/users', name: 'users', methods: ['GET'])]
-/**
- * Route pour récupérer tous les utilisateurs
- * @param \App\Repository\UserRepository $userRepository
- * @param \Symfony\Component\Serializer\SerializerInterface $serializer
- * @return \Symfony\Component\HttpFoundation\JsonResponse
- */
-public function getAllUsers(UserRepository $userRepository, SerializerInterface $serializer, Request $request, TagAwareCacheInterface $cache): JsonResponse
-    {
+public function getAllUsers(
+    UserRepository $userRepository,
+    SerializerInterface $serializer,
+    Request $request,
+    TagAwareCacheInterface $cache
+): JsonResponse{
     $page = $request->query->get('page', 1);
     $limit = $request->query->get('limit', 5);
 
     $idCache = 'getAllUsers_' . $page . '_' . $limit;
-    $jsonUserList = $cache->get($idCache, function (ItemInterface $item) use ($userRepository, $page, $limit, $serializer) {
-        echo ('mise en cache');
-        $item->tag('userListCache');
-        // $item->expiresAfter(10);
-        $userList = $userRepository->findAllUserPagination($page, $limit);
-        return $serializer->serialize($userList, 'json', ['groups' => 'getUsers']);
 
+    $jsonUserList = $cache->get($idCache, function (ItemInterface $item) use ($userRepository, $page, $limit, $serializer) {
+        $item->tag('userListCache');
+        $item->expiresAfter(1);
+
+        // Fetch user list and total items from UserRepository
+        $usersPaginated = $userRepository->findAllUserPagination($page, $limit);
+        $allUsers = $userRepository->findAll();
+        $totalItems = count($allUsers);
+
+        // Create Hateoas PaginatedRepresentation
+        $paginatedCollection = new PaginatedRepresentation(
+            new CollectionRepresentation($usersPaginated),
+            'users', // Route name
+            ['page' => $page, 'limit' => $limit], // Route parameters
+            $page, // Current page number
+            $limit, // Limit per page
+            ceil($totalItems / $limit), // Total number of pages
+            'page', // Page route parameter name (optional)
+            'limit', // Limit route parameter name (optional)
+            true, // Generate relative URIs
+            $totalItems // Total collection size
+        );
+
+        $json = $serializer->serialize($paginatedCollection, 'json');
+
+        return $json;
     });
+
     return new JsonResponse($jsonUserList, Response::HTTP_OK, [], true);
 }
 
@@ -53,8 +75,7 @@ public function getAllUsers(UserRepository $userRepository, SerializerInterface 
  */
 function getDetailUser(User $user, SerializerInterface $serializer): JsonResponse
     {
-
-    $jsonUserList = $serializer->serialize($user, 'json', ['groups' => 'getUsers']);
+    $jsonUserList = $serializer->serialize($user, 'json' );
     return new JsonResponse($jsonUserList, Response::HTTP_OK, [], true);
 }
 
@@ -96,8 +117,7 @@ function addUser(Request $request, ClientRepository $clientRepository, Serialize
     $entityManager->persist($user);
     $entityManager->flush();
     $location = $urlGenerator->generate('detailUser', ['id' => $user->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
-
-    $jsonUser = $serializer->serialize($user, 'json', ['groups' => 'getUsers']);
+    $jsonUser = $serializer->serialize($user, 'json');
     return new JsonResponse($jsonUser, Response::HTTP_CREATED, ["location" => $location], true);
 }
 

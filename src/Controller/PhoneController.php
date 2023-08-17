@@ -4,12 +4,14 @@ namespace App\Controller;
 
 use App\Entity\Phone;
 use App\Repository\PhoneRepository;
+use Hateoas\Representation\CollectionRepresentation;
+use Hateoas\Representation\PaginatedRepresentation;
+use JMS\Serializer\SerializerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
@@ -22,22 +24,43 @@ class PhoneController extends AbstractController
  * @param \Symfony\Component\Serializer\SerializerInterface $serializer
  * @return \Symfony\Component\HttpFoundation\JsonResponse
  */
-public function getAllPhones(PhoneRepository $phoneRepository, SerializerInterface $serializer, Request $request,TagAwareCacheInterface $cache): JsonResponse
-    {
+public function getAllPhones(
+    PhoneRepository $phoneRepository,
+    SerializerInterface $serializer,
+    Request $request,
+    TagAwareCacheInterface $cache
+): JsonResponse{
     $page = $request->query->get('page', 1);
     $limit = $request->query->get('limit', 5);
 
     $idCache = 'getAllPhones_' . $page . '_' . $limit;
     $jsonPhonesList = $cache->get($idCache, function (ItemInterface $item) use ($phoneRepository, $page, $limit, $serializer) {
-        echo ('mise en cache');
+        //echo ('mise en cache');
         $item->tag('phoneListCache');
-        $phoneList = $phoneRepository->findAllPhonePagination($page, $limit);
+        $item->expiresAfter(20);
+        $phonesPaginated = $phoneRepository->findAllPhonePagination($page, $limit);
+        $allPhones = $phoneRepository->findAll();
+        $totalItems = count($allPhones);
+        // Create Hateoas PaginatedRepresentation
+        $paginatedCollection = new PaginatedRepresentation(
+            new CollectionRepresentation($phonesPaginated),
+            'phones', // Route name
+            ['page' => $page, 'limit' => $limit], // Route parameters
+            $page, // Current page number
+            $limit, // Limit per page
+            ceil($totalItems / $limit), // Total number of pages
+            'page', // Page route parameter name (optional)
+            'limit', // Limit route parameter name (optional)
+            true, // Generate relative URIs
+            $totalItems // Total collection size
+        );
 
-         //$item->expiresAfter(10);
-        return $serializer->serialize($phoneList, 'json');
+        $json = $serializer->serialize($paginatedCollection, 'json');
+
+        return $json;
 
     });
-  //  $jsonPhonesList = $serializer->serialize($phones, 'json');
+    //  $jsonPhonesList = $serializer->serialize($phones, 'json');
     return new JsonResponse($jsonPhonesList, Response::HTTP_OK, [], true);
 
 }
@@ -50,9 +73,11 @@ public function getAllPhones(PhoneRepository $phoneRepository, SerializerInterfa
  * @return \Symfony\Component\HttpFoundation\JsonResponse
  */
 function getDetailPhone(Phone $phone, SerializerInterface $serializer): JsonResponse
-    {
+{
+
     $jsonPhonesList = $serializer->serialize($phone, 'json');
     return new JsonResponse($jsonPhonesList, Response::HTTP_OK, [], true);
 
 }
+
 }

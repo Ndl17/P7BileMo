@@ -8,7 +8,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Serializer\Annotation\Groups;
+use JMS\Serializer\Annotation\Groups;
+use Hateoas\Configuration\Annotation as Hateoas;
+use JMS\Serializer\Annotation\Exclude;
 
 #[ORM\Entity(repositoryClass: ClientRepository::class)]
 class Client implements UserInterface, PasswordAuthenticatedUserInterface
@@ -23,16 +25,27 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['getUsers'])]
     private ?string $email = null;
 
+      /**
+     * @var array The roles of the client.
+     *
+     * @Exclude()
+     */
     #[ORM\Column]
     private array $roles = [];
 
-    /**
-     * @var string The hashed password
+     /**
+     * @var string The hashed password.
+     *
+     * @Exclude()
      */
     #[ORM\Column]
     private ?string $password = null;
 
-    #[ORM\OneToMany(mappedBy: 'client', targetEntity: USER::class)]
+    /**
+     * @var Collection<int, User> The users associated with this client.     
+     * @Exclude()
+     */
+    #[ORM\OneToMany(mappedBy: 'client', targetEntity: User::class)]
     private Collection $users;
 
     public function __construct()
