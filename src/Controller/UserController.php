@@ -165,19 +165,22 @@ function deleteUser(User $user, EntityManagerInterface $entityManager, TagAwareC
 /**
  * Route pour ajouter un utilisateur
  * @OA\Response(
- *   response=201,
- *  description="Ajoute un utilisateur",
- * @OA\JsonContent(
- *  type="array",
- * @OA\Items(ref=@Model(type=User::class, groups={"getUsers"}))
- * )
+ *     response=201,
+ *     description="Ajoute un utilisateur",
+ *     @OA\JsonContent(
+ *         type="array",
+ *         @OA\Items(ref=@Model(type=User::class, groups={"getUsers"}))
+ *     )
  * )
  * @OA\RequestBody(
- * description="Ajoute un utilisateur",
- * @OA\JsonContent(
- * type="array",
- * @OA\Items(ref=@Model(type=User::class, groups={"getUsers"}))
- * )
+ *     description="Ajoute un utilisateur",
+ *     @OA\JsonContent(
+ *         type="object",
+ *         @OA\Property(property="firstName", type="string", example="John"),
+ *         @OA\Property(property="lastName", type="string", example="Doe"),
+ *         @OA\Property(property="email", type="string", example="john@example.com"),
+ *         @OA\Property(property="client_id", type="integer", example=123)
+ *     )
  * )
  * @OA\Tag(name="Users")
  *
