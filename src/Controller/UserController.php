@@ -8,7 +8,6 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Hateoas\Representation\CollectionRepresentation;
 use Hateoas\Representation\PaginatedRepresentation;
-use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerInterface;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use OpenApi\Annotations as OA;
@@ -61,17 +60,17 @@ public function getAllUsers(
     SerializerInterface $serializer,
     Request $request,
     TagAwareCacheInterface $cache
-): JsonResponse{
+): JsonResponse {
+    // Récupération des paramètres page et limit
     $page = $request->query->get('page', 1);
     $limit = $request->query->get('limit', 5);
-
+    // création de l'id du cache
     $idCache = 'getAllUsers_' . $page . '_' . $limit;
-
+    // récupération du cache
     $jsonUserList = $cache->get($idCache, function (ItemInterface $item) use ($userRepository, $page, $limit, $serializer) {
         $item->tag('userListCache');
         $item->expiresAfter(1);
-
-        // Fetch user list and total items from UserRepository
+        //Récupérer la liste des utilisateurs et le nombre total d'utilisateurs dans le userRepository
         $usersPaginated = $userRepository->findAllUserPagination($page, $limit);
         $allUsers = $userRepository->findAll();
         $totalItems = count($allUsers);
@@ -89,18 +88,18 @@ public function getAllUsers(
             true, // Generate relative URIs
             $totalItems // Total collection size
         );
-
+        //sérialisation de la liste des utilisateurs
         $json = $serializer->serialize($paginatedCollection, 'json');
-
+        //retourne une réponse json avec la liste des utilisateurs
         return $json;
     });
-
+    //retourne une réponse json avec la liste des utilisateurs avec un code 200
     return new JsonResponse($jsonUserList, Response::HTTP_OK, [], true);
 }
 
 #[Route('/api/users/{id}', name: 'detailUser', methods: ['GET'])]
 /**
- * 
+ *
  * Route pour récupérer un utilisateur par son id
  * @OA\Response(
  *    response=200,
@@ -118,7 +117,7 @@ public function getAllUsers(
  * )
  *
  * @OA\Tag(name="Users")
- * 
+ *
  * Route pour récupérer un utilisateur par son id
  * @param \App\Entity\User $user
  * @param \Symfony\Component\Serializer\SerializerInterface $serializer
@@ -126,7 +125,9 @@ public function getAllUsers(
  */
 function getDetailUser(User $user, SerializerInterface $serializer): JsonResponse
     {
-    $jsonUserList = $serializer->serialize($user, 'json' );
+    //sérialisation de l'utilisateur
+    $jsonUserList = $serializer->serialize($user, 'json');
+    //retourne une réponse json avec l'utilisateur
     return new JsonResponse($jsonUserList, Response::HTTP_OK, [], true);
 }
 
@@ -144,16 +145,19 @@ function getDetailUser(User $user, SerializerInterface $serializer): JsonRespons
  * @OA\Schema(type="string")
  * )
  * @OA\Tag(name="Users")
- * 
+ *
  * @param \App\Entity\User $user
  * @param \Doctrine\ORM\EntityManagerInterface $entityManager
  * @return \Symfony\Component\HttpFoundation\JsonResponse
  */
 function deleteUser(User $user, EntityManagerInterface $entityManager, TagAwareCacheInterface $cache): JsonResponse
     {
+    //suppression du cache
     $cache->invalidateTags(['userListCache']);
+    //suppression de l'utilisateur
     $entityManager->remove($user);
     $entityManager->flush();
+    //retourne une réponse vide
     return new JsonResponse(null, Response::HTTP_NO_CONTENT);
 }
 
@@ -176,26 +180,32 @@ function deleteUser(User $user, EntityManagerInterface $entityManager, TagAwareC
  * )
  * )
  * @OA\Tag(name="Users")
- * 
+ *
  * @param \Symfony\Component\Serializer\SerializerInterface $serializer
  * @param \Doctrine\ORM\EntityManagerInterface $entityManager
  * @return \Symfony\Component\HttpFoundation\JsonResponse
  */
 function addUser(Request $request, ClientRepository $clientRepository, SerializerInterface $serializer, EntityManagerInterface $entityManager, UrlGeneratorInterface $urlGenerator, ValidatorInterface $validator, TagAwareCacheInterface $cache): JsonResponse
     {
+    //récupération du contenu de la requête
+     // et désérialisation du json en objet User
     $user = $serializer->deserialize($request->getContent(), User::class, 'json');
+    //récupération du client
     $content = $request->toArray();
     $idClient = $content['client_id'] ?? -1;
     $user->setClient($clientRepository->find($idClient));
-
+    //récupération des erreurs de validation
     $errors = $validator->validate($user);
-
+    //si il y a des erreurs de validation on les retourne en json avec un code 400 (bad request)
     if ($errors->count() > 0) {
         return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
     }
+    //suppression du cache
     $cache->invalidateTags(['userListCache']);
+    //création de l'utilisateur
     $entityManager->persist($user);
     $entityManager->flush();
+    //création de l'url de l'utilisateur  et sérialisation de l'utilisateur  en json avec un code 201 (created)
     $location = $urlGenerator->generate('detailUser', ['id' => $user->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
     $jsonUser = $serializer->serialize($user, 'json');
     return new JsonResponse($jsonUser, Response::HTTP_CREATED, ["location" => $location], true);

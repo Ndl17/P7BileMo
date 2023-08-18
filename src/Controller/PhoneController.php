@@ -55,14 +55,20 @@ public function getAllPhones(
     Request $request,
     TagAwareCacheInterface $cache
 ): JsonResponse {
+    // Récupération des paramètres page et limit
     $page = $request->query->get('page', 1);
     $limit = $request->query->get('limit', 5);
-
+    //création d'un id pour le cache
     $idCache = 'getAllPhones_' . $page . '_' . $limit;
+    // récupération du cache 
     $jsonPhonesList = $cache->get($idCache, function (ItemInterface $item) use ($phoneRepository, $page, $limit, $serializer) {
-        //echo ('mise en cache');
+         //echo ('mise en cache');
+        // mise en cache des données
+        // Ajout du tag pour le cache
         $item->tag('phoneListCache');
+        //delais d'expiration du cache
         $item->expiresAfter(20);
+        //Récupérer la liste des téléphones et le nombre total de téléphones dans le phoneRepository
         $phonesPaginated = $phoneRepository->findAllPhonePagination($page, $limit);
         $allPhones = $phoneRepository->findAll();
         $totalItems = count($allPhones);
@@ -79,13 +85,13 @@ public function getAllPhones(
             true, // Generate relative URIs
             $totalItems // Total collection size
         );
-
+        //sérialisation de la liste des téléphones
         $json = $serializer->serialize($paginatedCollection, 'json');
-
+        //retourne la liste des téléphones
         return $json;
 
     });
-
+    // retourne la liste des téléphones en json avec un code 200
     return new JsonResponse($jsonPhonesList, Response::HTTP_OK, [], true);
 
 }
@@ -116,8 +122,9 @@ public function getAllPhones(
  */
 function getDetailPhone(Phone $phone, SerializerInterface $serializer): JsonResponse
     {
-
+     //sérialisation du téléphone 
     $jsonPhonesList = $serializer->serialize($phone, 'json');
+    //retourne une réponse json avec le téléphone
     return new JsonResponse($jsonPhonesList, Response::HTTP_OK, [], true);
 
 }
