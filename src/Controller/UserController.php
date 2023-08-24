@@ -118,7 +118,7 @@ public function getAllUsers(
         name:"id",
         in:"path",
         description:"La page que l'on veut récupérer",
-        schema: new OA\Schema(type: 'int')            
+        schema: new OA\Schema(type: 'string')            
          )]
 
 #[OA\Tag(name: 'Users')]
@@ -148,7 +148,7 @@ function getDetailUser(User $user, SerializerInterface $serializer): JsonRespons
         name:"id",
         in:"path",
         description:"l'id de l'utilisateur à supprimer",
-        schema: new OA\Schema(type: 'int')            
+        schema: new OA\Schema(type: 'string')            
          )]
 
 #[OA\Tag(name: 'Users')]
