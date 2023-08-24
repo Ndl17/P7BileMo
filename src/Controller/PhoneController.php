@@ -8,7 +8,7 @@ use Hateoas\Representation\CollectionRepresentation;
 use Hateoas\Representation\PaginatedRepresentation;
 use JMS\Serializer\SerializerInterface;
 use Nelmio\ApiDocBundle\Annotation\Model;
-use OpenApi\Annotations as OA;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,31 +20,35 @@ use Symfony\Contracts\Cache\TagAwareCacheInterface;
 class PhoneController extends AbstractController
 {
     #[Route('/api/phones', name: 'phones', methods: ['GET'])]
+
+    #[OA\Response(
+            response:200,
+            description:"Retourne la liste des téléphones",
+            content: new OA\JsonContent(
+                type: 'array',
+                items: new OA\Items(ref:new Model(type: Phone::class))
+            )
+         )]
+
+         #[OA\Parameter(
+                name:"page",
+                in:"query",
+                description:"La page que l'on veut récupérer",
+                schema: new OA\Schema(type: 'int')            
+                 )]
+
+             
+         #[OA\Parameter(
+            name:"limit",
+           in:"query",
+            description:"Le nombre d'éléments que l'on veut récupérer",
+            schema: new OA\Schema(type: 'int')            
+            )]
+
+        #[OA\Tag(name: 'Phones')]
 /**
  * Route pour récupérer tous les téléphones
- * @OA\Response(
- *     response=200,
- *     description="Retourne la liste des livres",
- *     @OA\JsonContent(
- *        type="array",
- *        @OA\Items(ref=@Model(type=Phone::class, groups={"getPhones"}))
- *     )
- * )
- * @OA\Parameter(
- *     name="page",
- *     in="query",
- *     description="La page que l'on veut récupérer",
- *     @OA\Schema(type="int")
- * )
- *
- * @OA\Parameter(
- *     name="limit",
- *     in="query",
- *     description="Le nombre d'éléments que l'on veut récupérer",
- *     @OA\Schema(type="int")
- * )
- * @OA\Tag(name="Phones")
- *
+ * 
  * @param \App\Repository\PhoneRepository $phoneRepository
  * @param \Symfony\Component\Serializer\SerializerInterface $serializer
  * @return \Symfony\Component\HttpFoundation\JsonResponse
@@ -97,24 +101,28 @@ public function getAllPhones(
 }
 
 #[Route('/api/phones/{id}', name: 'detailPhone', methods: ['GET'])]
+
+#[OA\Response(
+    response:200,
+    description:"Retourne le detail d'un téléphone",
+    content: new OA\JsonContent(
+        type: 'array',
+        items: new OA\Items(ref:new Model(type: Phone::class))
+    )
+ )]
+
+ #[OA\Parameter(
+        name:"id",
+        in:"path",
+        description:"L'id du téléphone",
+        schema: new OA\Schema(type: 'string')            
+         )]
+
+     
+    #[OA\Tag(name: 'Phones')]
+
 /**
- * Route pour récupérer un téléphone par son id
- * @OA\Response(
- *    response=200,
- *   description="Retourne le détail d'un téléphone",
- *  @OA\JsonContent(
- *    type="array",
- *   @OA\Items(ref=@Model(type=Phone::class, groups={"getPhones"}))
- * )
- * )
- * @OA\Parameter(
- *   name="id",
- *  in="path",
- * description="L'id du téléphone",
- * @OA\Schema(type="string")
- * )
- *
- * @OA\Tag(name="Phones")
+ *Route pour récupérer le détail d'un téléphone
  *
  * @param \App\Entity\Phone $phone
  * @param \Symfony\Component\Serializer\SerializerInterface $serializer

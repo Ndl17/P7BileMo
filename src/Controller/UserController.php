@@ -10,7 +10,7 @@ use Hateoas\Representation\CollectionRepresentation;
 use Hateoas\Representation\PaginatedRepresentation;
 use JMS\Serializer\SerializerInterface;
 use Nelmio\ApiDocBundle\Annotation\Model;
-use OpenApi\Annotations as OA;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,30 +25,36 @@ class UserController extends AbstractController
 {
 
     #[Route('/api/users', name: 'users', methods: ['GET'])]
+
+    #[OA\Response(
+        response:200,
+        description:"Retourne la liste des utilisateurs",
+        content: new OA\JsonContent(
+            type: 'array',
+            items: new OA\Items(ref:new Model(type: User::class))
+        )
+     )]
+
+     #[OA\Parameter(
+            name:"page",
+            in:"query",
+            description:"La page que l'on veut récupérer",
+            schema: new OA\Schema(type: 'int')            
+             )]
+
+         
+     #[OA\Parameter(
+        name:"limit",
+       in:"query",
+        description:"Le nombre d'éléments que l'on veut récupérer",
+        schema: new OA\Schema(type: 'int')            
+        )]
+
+    #[OA\Tag(name: 'Users')]
+
 /**
  * Route pour récupérer tous les utilisateurs
- * @OA\Response(
- *     response=200,
- *     description="Retourne la liste des utilisateurs",
- *     @OA\JsonContent(
- *        type="array",
- *        @OA\Items(ref=@Model(type=User::class, groups={"getUsers"}))
- *     )
- * )
- * @OA\Parameter(
- *     name="page",
- *     in="query",
- *     description="La page que l'on veut récupérer",
- *     @OA\Schema(type="int")
- * )
- *
- * @OA\Parameter(
- *     name="limit",
- *     in="query",
- *     description="Le nombre d'éléments que l'on veut récupérer",
- *     @OA\Schema(type="int")
- * )
- * @OA\Tag(name="Users")
+
  * @param \App\Repository\UserRepository $userRepository
  * @param \JMS\Serializer\SerializerInterface $serializer
  * @param \Symfony\Component\HttpFoundation\Request $request
@@ -98,26 +104,26 @@ public function getAllUsers(
 }
 
 #[Route('/api/users/{id}', name: 'detailUser', methods: ['GET'])]
+
+#[OA\Response(
+    response:200,
+    description:"Retourne la liste des téléphones",
+    content: new OA\JsonContent(
+        type: 'array',
+        items: new OA\Items(ref:new Model(type: User::class))
+    )
+ )]
+
+ #[OA\Parameter(
+        name:"id",
+        in:"path",
+        description:"La page que l'on veut récupérer",
+        schema: new OA\Schema(type: 'int')            
+         )]
+
+#[OA\Tag(name: 'Users')]
 /**
- *
- * Route pour récupérer un utilisateur par son id
- * @OA\Response(
- *    response=200,
- *   description="Retourne le détail d'un utilisateur",
- *  @OA\JsonContent(
- *    type="array",
- *   @OA\Items(ref=@Model(type=User::class, groups={"getUsers"}))
- * )
- * )
- * @OA\Parameter(
- *   name="id",
- *  in="path",
- * description="L'id de l'utilisateur",
- * @OA\Schema(type="string")
- * )
- *
- * @OA\Tag(name="Users")
- *
+ * 
  * Route pour récupérer un utilisateur par son id
  * @param \App\Entity\User $user
  * @param \Symfony\Component\Serializer\SerializerInterface $serializer
@@ -132,19 +138,23 @@ function getDetailUser(User $user, SerializerInterface $serializer): JsonRespons
 }
 
 #[Route('/api/users/{id}', name: 'deleteUser', methods: ['DELETE'])]
+
+#[OA\Response(
+    response:204,
+    description:"Supprime un utilisateur",
+ )]
+
+ #[OA\Parameter(
+        name:"id",
+        in:"path",
+        description:"l'id de l'utilisateur à supprimer",
+        schema: new OA\Schema(type: 'int')            
+         )]
+
+#[OA\Tag(name: 'Users')]
+
 /**
  * Route pour supprimer un utilisateur par son id
- * @OA\Response(
- *  response=204,
- * description="Supprime un utilisateur",
- * )
- * @OA\Parameter(
- * name="id",
- * in="path",
- * description="L'id de l'utilisateur",
- * @OA\Schema(type="string")
- * )
- * @OA\Tag(name="Users")
  *
  * @param \App\Entity\User $user
  * @param \Doctrine\ORM\EntityManagerInterface $entityManager
@@ -162,27 +172,32 @@ function deleteUser(User $user, EntityManagerInterface $entityManager, TagAwareC
 }
 
 #[Route('/api/users', name: 'addUser', methods: ['POST'])]
+
+#[OA\Response(
+    response:201,
+    description:"Ajoute un utilisateur",
+    content: new OA\JsonContent(
+        type: 'array',
+        items: new OA\Items(ref:new Model(type: User::class))
+    )
+ )]
+
+ #[OA\RequestBody(
+    description:"L'utilisateur à ajouter",
+    required:true,
+    content: new OA\JsonContent(
+        properties: [
+            new OA\Property(property: "firstname", type: "string"),
+            new OA\Property(property: "lastname", type: "string"),
+            new OA\Property(property: "email", type: "string"),
+            new OA\Property(property: "client_id", type: "integer"),
+        ]
+    )
+ )]
+
+ #[OA\Tag(name: 'Users')]
 /**
  * Route pour ajouter un utilisateur
- * @OA\Response(
- *     response=201,
- *     description="Ajoute un utilisateur",
- *     @OA\JsonContent(
- *         type="array",
- *         @OA\Items(ref=@Model(type=User::class, groups={"getUsers"}))
- *     )
- * )
- * @OA\RequestBody(
- *     description="Ajoute un utilisateur",
- *     @OA\JsonContent(
- *         type="object",
- *         @OA\Property(property="firstName", type="string", example="John"),
- *         @OA\Property(property="lastName", type="string", example="Doe"),
- *         @OA\Property(property="email", type="string", example="john@example.com"),
- *         @OA\Property(property="client_id", type="integer", example=123)
- *     )
- * )
- * @OA\Tag(name="Users")
  *
  * @param \Symfony\Component\Serializer\SerializerInterface $serializer
  * @param \Doctrine\ORM\EntityManagerInterface $entityManager
