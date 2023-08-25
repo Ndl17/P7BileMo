@@ -129,7 +129,7 @@ public function getAllUsers(
  * @param \Symfony\Component\Serializer\SerializerInterface $serializer
  * @return \Symfony\Component\HttpFoundation\JsonResponse
  */
-function getDetailUser(User $user, SerializerInterface $serializer): JsonResponse
+public function getDetailUser(User $user, SerializerInterface $serializer): JsonResponse
     {
     //sérialisation de l'utilisateur
     $jsonUserList = $serializer->serialize($user, 'json');
@@ -160,7 +160,7 @@ function getDetailUser(User $user, SerializerInterface $serializer): JsonRespons
  * @param \Doctrine\ORM\EntityManagerInterface $entityManager
  * @return \Symfony\Component\HttpFoundation\JsonResponse
  */
-function deleteUser(User $user, EntityManagerInterface $entityManager, TagAwareCacheInterface $cache): JsonResponse
+public function deleteUser(User $user, EntityManagerInterface $entityManager, TagAwareCacheInterface $cache): JsonResponse
     {
     //suppression du cache
     $cache->invalidateTags(['userListCache']);
@@ -203,7 +203,7 @@ function deleteUser(User $user, EntityManagerInterface $entityManager, TagAwareC
  * @param \Doctrine\ORM\EntityManagerInterface $entityManager
  * @return \Symfony\Component\HttpFoundation\JsonResponse
  */
-function addUser(Request $request, ClientRepository $clientRepository, SerializerInterface $serializer, EntityManagerInterface $entityManager, UrlGeneratorInterface $urlGenerator, ValidatorInterface $validator, TagAwareCacheInterface $cache): JsonResponse
+public function addUser(Request $request, ClientRepository $clientRepository, SerializerInterface $serializer, EntityManagerInterface $entityManager, UrlGeneratorInterface $urlGenerator, ValidatorInterface $validator, TagAwareCacheInterface $cache): JsonResponse
     {
     //récupération du contenu de la requête
      // et désérialisation du json en objet User

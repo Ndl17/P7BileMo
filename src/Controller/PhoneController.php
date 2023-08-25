@@ -66,7 +66,6 @@ public function getAllPhones(
     $idCache = 'getAllPhones_' . $page . '_' . $limit;
     // récupération du cache 
     $jsonPhonesList = $cache->get($idCache, function (ItemInterface $item) use ($phoneRepository, $page, $limit, $serializer) {
-         //echo ('mise en cache');
         // mise en cache des données
         // Ajout du tag pour le cache
         $item->tag('phoneListCache');
@@ -128,7 +127,7 @@ public function getAllPhones(
  * @param \Symfony\Component\Serializer\SerializerInterface $serializer
  * @return \Symfony\Component\HttpFoundation\JsonResponse
  */
-function getDetailPhone(Phone $phone, SerializerInterface $serializer): JsonResponse
+public function getDetailPhone(Phone $phone, SerializerInterface $serializer): JsonResponse
     {
      //sérialisation du téléphone 
     $jsonPhonesList = $serializer->serialize($phone, 'json');
