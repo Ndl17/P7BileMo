@@ -46,11 +46,13 @@ class PhoneController extends AbstractController
             )]
 
         #[OA\Tag(name: 'Phones')]
+
 /**
  * Route pour récupérer tous les téléphones
- * 
  * @param \App\Repository\PhoneRepository $phoneRepository
- * @param \Symfony\Component\Serializer\SerializerInterface $serializer
+ * @param \JMS\Serializer\SerializerInterface $serializer
+ * @param \Symfony\Component\HttpFoundation\Request $request
+ * @param \Symfony\Contracts\Cache\TagAwareCacheInterface $cache
  * @return \Symfony\Component\HttpFoundation\JsonResponse
  */
 public function getAllPhones(
