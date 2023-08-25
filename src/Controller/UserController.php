@@ -202,8 +202,8 @@ public function deleteUser(User $user): JsonResponse
     required:true,
     content: new OA\JsonContent(
         properties: [
-            new OA\Property(property: "firstname", type: "string"),
-            new OA\Property(property: "lastname", type: "string"),
+            new OA\Property(property: "firstName", type: "string"),
+            new OA\Property(property: "lastName", type: "string"),
             new OA\Property(property: "email", type: "string"),
             new OA\Property(property: "client_id", type: "integer"),
         ]
