@@ -19,10 +19,9 @@ class AppFixtures extends Fixture
         $this->userPasswordHasher = $userPasswordHasher;
     }
 
-    public function load(ObjectManager $manager)
+    public function load(ObjectManager $manager): void
     {
-        $faker = Factory::create(); // Create a Faker instance
-        
+        $faker = Factory::create(); 
         $listClients = [];
         for ($i = 0; $i < 10; $i++) {
             $client = new Client();
@@ -32,6 +31,13 @@ class AppFixtures extends Fixture
             $manager->persist($client);
             $listClients[] = $client;
         }
+
+        $defaultClient = new Client();
+        $defaultClient->setEmail('mail@mail.com');
+        $defaultClient->setRoles(['ROLE_USER']);
+        $defaultClient->setPassword($this->userPasswordHasher->hashPassword($defaultClient, 'password'));
+        $manager->persist($defaultClient);
+
 
         for ($i = 0; $i < 20; $i++) {
             $user = new User();
