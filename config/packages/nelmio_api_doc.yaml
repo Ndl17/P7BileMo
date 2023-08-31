@@ -37,7 +37,7 @@ nelmio_api_doc:
                     properties:
                         username:
                             type: string
-                            default: user0@user.user
+                            default: mail@mail.com
                         password:
                             type: string
                             default: password
@@ -51,3 +51,4 @@ nelmio_api_doc:
     areas: # to filter documented areas
         path_patterns:
             - ^/api(?!/doc$) # Accepts routes under /api except /api/doc
+            

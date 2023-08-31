@@ -46,11 +46,13 @@ class PhoneController extends AbstractController
             )]
 
         #[OA\Tag(name: 'Phones')]
+
 /**
  * Route pour récupérer tous les téléphones
- * 
  * @param \App\Repository\PhoneRepository $phoneRepository
- * @param \Symfony\Component\Serializer\SerializerInterface $serializer
+ * @param \JMS\Serializer\SerializerInterface $serializer
+ * @param \Symfony\Component\HttpFoundation\Request $request
+ * @param \Symfony\Contracts\Cache\TagAwareCacheInterface $cache
  * @return \Symfony\Component\HttpFoundation\JsonResponse
  */
 public function getAllPhones(
@@ -66,7 +68,6 @@ public function getAllPhones(
     $idCache = 'getAllPhones_' . $page . '_' . $limit;
     // récupération du cache 
     $jsonPhonesList = $cache->get($idCache, function (ItemInterface $item) use ($phoneRepository, $page, $limit, $serializer) {
-         //echo ('mise en cache');
         // mise en cache des données
         // Ajout du tag pour le cache
         $item->tag('phoneListCache');
@@ -128,7 +129,7 @@ public function getAllPhones(
  * @param \Symfony\Component\Serializer\SerializerInterface $serializer
  * @return \Symfony\Component\HttpFoundation\JsonResponse
  */
-function getDetailPhone(Phone $phone, SerializerInterface $serializer): JsonResponse
+public function getDetailPhone(Phone $phone, SerializerInterface $serializer): JsonResponse
     {
      //sérialisation du téléphone 
     $jsonPhonesList = $serializer->serialize($phone, 'json');

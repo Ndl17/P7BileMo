@@ -129,18 +129,17 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
     public function eraseCredentials(): void
     {
         // If you store any temporary, sensitive data on the user, clear it here
-        // $this->plainPassword = null;
     }
 
     /**
-     * @return Collection<int, USER>
+     * @return Collection<int, User>
      */
     public function getUsers(): Collection
     {
         return $this->users;
     }
 
-    public function addUser(USER $user): static
+    public function addUser(User  $user): static
     {
         if (!$this->users->contains($user)) {
             $this->users->add($user);
@@ -150,7 +149,7 @@ class Client implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function removeUser(USER $user): static
+    public function removeUser(User  $user): static
     {
         if ($this->users->removeElement($user)) {
             // set the owning side to null (unless already changed)
