@@ -25,11 +25,14 @@ DATABASE_URL="mysql://username:password@127.0.0.1:3306/snowtricks?serverVersion=
 * Etape 6 : Pour recréer la structure de la bdd, lancez la commande suivante : php bin/console doctrine:migrations:migrate
 * Etape 7 : Pour recréer le jeu de donnée: php bin/console doctrine:fixtures:load
 * Etape 8 : Générez les clés SSH pour se faire:
-	    1. allez dans config/jwt
-	    2. tapez les commandes suivantes
-	       openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096
-	       openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout
-            3. Notez votre passphrase à la ligne "JWT_PASSPHRASE=" de votre fichier .env.local 
+```
+1. Allez dans le dossier config
+2. Créez un dossier "jwt"
+3. Tapez les commandes suivantes dans votre terminal, pour chaque commande spécifiez votre passphrase:
+	$ openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096
+	$ openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout
+4. Notez votre passphrase à la ligne "JWT_PASSPHRASE=" de votre fichier .env.local
+```
 
 * Etape 9 : Démarrez le projet en utilisant la commande suivante : php bin/console server:start, accédez à la doc via l'url suivante: http://127.0.0.1:8000/api/doc
 
