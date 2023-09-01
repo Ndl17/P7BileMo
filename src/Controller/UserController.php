@@ -227,6 +227,9 @@ public function addUser(Request $request): JsonResponse
     $idClient = $content['client_id'] ?? -1;
     $user->setClient($this->clientRepository->find($idClient));
 
+    if ($user->getClient() === null) {
+        return new JsonResponse("l'id client que vous avez renseigné n'a aucune correspondance", Response::HTTP_BAD_REQUEST);
+    }
     // Récupération des erreurs de validation
     $errors = $this->validator->validate($user);
 
