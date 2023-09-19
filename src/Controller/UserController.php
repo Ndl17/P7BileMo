@@ -88,7 +88,6 @@ public function getAllUsers(Request $request): JsonResponse
     // récupération du cache
     $jsonUserList = $this->cache->get($idCache, function (ItemInterface $item) use ($page, $limit) {
         $item->tag('userListCache');
-        $item->expiresAfter(1);
 
         // Récupérer la liste des utilisateurs et le nombre total d'utilisateurs dans le userRepository
         $usersPaginated = $this->userRepository->findAllUserPagination($page, $limit);
@@ -227,16 +226,18 @@ public function addUser(Request $request): JsonResponse
     $idClient = $content['client_id'] ?? -1;
     $user->setClient($this->clientRepository->find($idClient));
 
+        // Récupération des erreurs de validation
+        $errors = $this->validator->validate($user);
+
+        // Si il y a des erreurs de validation on les retourne en JSON avec un code 400 (bad request)
+        if ($errors->count() > 0) {
+            return new JsonResponse($this->serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
+        }
+
     if ($user->getClient() === null) {
         return new JsonResponse("l'id client que vous avez renseigné n'a aucune correspondance", Response::HTTP_BAD_REQUEST);
     }
-    // Récupération des erreurs de validation
-    $errors = $this->validator->validate($user);
 
-    // Si il y a des erreurs de validation on les retourne en JSON avec un code 400 (bad request)
-    if ($errors->count() > 0) {
-        return new JsonResponse($this->serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
-    }
 
     // Suppression du cache
     $this->cache->invalidateTags(['userListCache']);
