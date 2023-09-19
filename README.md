@@ -37,7 +37,7 @@ DATABASE_URL="mysql://app:!ChangeMe!@127.0.0.1:3306/app?serverVersion=8.0.32&cha
 * Etape 9 : Démarrez le projet en utilisant la commande suivante : php bin/console server:start, accédez à la doc via l'url suivante: http://127.0.0.1:8000/api/doc
 
 ## Librairies utilisées :
-FakerPhp
-Hateoas
-Nelmio
-JWT
+* FakerPhp
+* Hateoas
+* Nelmio
+* JWT
