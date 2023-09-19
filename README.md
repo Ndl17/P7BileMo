@@ -1,7 +1,7 @@
 # Projet 7 OpenClassrooms - Créez un web service exposant une API
 
 ## Score de qualité du code :
-https://insight.symfony.com/projects/87481171-eda5-4af1-82f1-92494b4daa61/big.svg
+[![SymfonyInsight](https://insight.symfony.com/projects/87481171-eda5-4af1-82f1-92494b4daa61/big.svg)](https://insight.symfony.com/projects/87481171-eda5-4af1-82f1-92494b4daa61)
 
 ## Informations :
 
@@ -19,7 +19,7 @@ https://insight.symfony.com/projects/87481171-eda5-4af1-82f1-92494b4daa61/big.sv
 ## Installation :
 * Etape 1 : Installez l’ensemble des fichier de ce repo dans le dossier web de votre environnement local.
 * Etape 2 : Modifiez les constantes du fichier .env  selon les information de votre bdd: 
-DATABASE_URL="mysql://username:password@127.0.0.1:3306/snowtricks?serverVersion=8&charset=utf8mb4"
+DATABASE_URL="mysql://app:!ChangeMe!@127.0.0.1:3306/app?serverVersion=8.0.32&charset=utf8mb4"
 * Etape 3 :  Effectuez la commande "composer install" depuis le répertoire du projet cloné
 * Etape 5 : Effectuez la commande php bin/console doctrine:database:create pour créer la base de données 
 * Etape 6 : Pour recréer la structure de la bdd, lancez la commande suivante : php bin/console doctrine:migrations:migrate
@@ -40,3 +40,4 @@ DATABASE_URL="mysql://username:password@127.0.0.1:3306/snowtricks?serverVersion=
 FakerPhp
 Hateoas
 Nelmio
+JWT
